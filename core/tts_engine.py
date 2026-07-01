@@ -6,87 +6,80 @@ Female voice with emotion support!
 import pyttsx3
 import threading
 from config.settings import VOICE_SETTINGS, EMOTIONS, USER_NAME
-from core.emotions import EmotionEngine
 
 class TTSEngine:
     def __init__(self):
-        self.engine = pyttsx3.init()
-        self.emotion_engine = EmotionEngine()
-        self.speaking = False
-        self._setup_voice()
+        self.voice_settings = self._get_voice_settings()
+        print("✅ TTS Engine ready!")
     
-    def _setup_voice(self):
-        """Configure female voice"""
-        voices = self.engine.getProperty('voices')
-        
-        # Print all voices for debugging
-        print("Available voices:")
-        for i, voice in enumerate(voices):
-            print(f"  {i}: {voice.name}")
-        
-        # Try to find a female voice
-        female_voice = None
-        for i, voice in enumerate(voices):
-            voice_name = voice.name.lower()
-            if any(keyword in voice_name for keyword in ['female', 'woman', 'girl', 'zira', 'eva', 'tina', 'hazel', 'susan', 'linda']):
-                female_voice = voice.id
-                print(f"Selected female voice: {voice.name}")
-                break
-        
-        # Fallback to first voice if no female found
-        if not female_voice and voices:
-            female_voice = voices[0].id
-            print(f"Fallback voice: {voices[0].name}")
-        
-        if female_voice:
-            self.engine.setProperty('voice', female_voice)
-        
-        self.engine.setProperty('rate', VOICE_SETTINGS['rate'])
-        self.engine.setProperty('volume', VOICE_SETTINGS['volume'])
-    
-    def set_emotion_voice(self, emotion):
-        """Adjust voice properties based on emotion"""
-        config = EMOTIONS.get(emotion, EMOTIONS['neutral'])
-        
-        base_rate = VOICE_SETTINGS['rate']
-        base_volume = VOICE_SETTINGS['volume']
-        
-        # Adjust rate based on emotion
-        new_rate = int(base_rate * config['speed'])
-        self.engine.setProperty('rate', new_rate)
-        
-        # Adjust volume slightly
-        new_volume = min(1.0, base_volume * config['pitch'])
-        self.engine.setProperty('volume', new_volume)
+    def _get_voice_settings(self):
+        """Get voice settings without initializing engine"""
+        try:
+            engine = pyttsx3.init()
+            voices = engine.getProperty('voices')
+            
+            print("Available voices:")
+            for i, voice in enumerate(voices):
+                print(f"  {i}: {voice.name}")
+            
+            female_voice = None
+            for voice in voices:
+                name = voice.name.lower()
+                if any(x in name for x in ['female', 'woman', 'girl', 'zira', 'hazel', 'susan', 'linda', 'tina', 'eva']):
+                    female_voice = voice.id
+                    print(f"Selected female voice: {voice.name}")
+                    break
+            
+            if not female_voice and voices:
+                female_voice = voices[0].id
+                print(f"Fallback voice: {voices[0].name}")
+            
+            engine.stop()
+            del engine
+            
+            return {
+                'voice': female_voice,
+                'rate': VOICE_SETTINGS['rate'],
+                'volume': VOICE_SETTINGS['volume']
+            }
+        except Exception as e:
+            print(f"❌ TTS Init Error: {e}")
+            return None
     
     def speak(self, text, emotion="neutral"):
-        """Speak text with emotion"""
+        """Speak text - blocking"""
         if not text:
             return
-            
-        self.speaking = True
         
-        # Get emotional prefix
-        self.emotion_engine.set_emotion(emotion)
-        prefix = self.emotion_engine.get_emotional_prefix()
-        full_text = prefix + text
-        
-        print(f"🔊 Jaya says: {full_text}")
+        print(f"🔊 Jaya says: {text}")
         
         try:
-            # Adjust voice for emotion
-            self.set_emotion_voice(emotion)
+            # Fresh engine instance
+            engine = pyttsx3.init()
             
-            # Speak
-            self.engine.say(full_text)
-            self.engine.runAndWait()
+            if self.voice_settings and self.voice_settings['voice']:
+                engine.setProperty('voice', self.voice_settings['voice'])
             
-            # Reset to neutral
-            self.set_emotion_voice("neutral")
+            # Emotion settings
+            config = EMOTIONS.get(emotion, EMOTIONS['neutral'])
+            prefix = config.get('prefix', '')
+            full_text = prefix + text
+            
+            rate = int(VOICE_SETTINGS['rate'] * config.get('speed', 1.0))
+            volume = min(1.0, VOICE_SETTINGS['volume'] * config.get('pitch', 1.0))
+            
+            engine.setProperty('rate', rate)
+            engine.setProperty('volume', volume)
+            
+            engine.say(full_text)
+            engine.runAndWait()
+            
+            engine.stop()
+            del engine
+            
         except Exception as e:
-            print(f"❌ TTS Error: {e}")
-        
-        self.speaking = False
+            print(f"❌ Speak Error: {e}")
+            print(f"📝 Jaya (text): {text}")
     
     def speak_async(self, text, emotion="neutral"):
         """Speak without blocking"""
@@ -97,21 +90,14 @@ class TTSEngine:
         return thread
     
     def stop(self):
-        """Stop speaking"""
-        try:
-            self.engine.stop()
-        except:
-            pass
-        self.speaking = False
+        pass
     
     def greet(self, language="english"):
-        """Greeting message"""
         from config.settings import GREETINGS
         greeting = GREETINGS.get(language, GREETINGS['english'])
         self.speak(greeting, emotion="happy")
     
     def say_goodbye(self, language="english"):
-        """Goodbye message"""
         goodbyes = {
             "english": f"Goodbye {USER_NAME}! Take care!",
             "hinglish": f"Bye {USER_NAME} bhaiya! Khush raho!"

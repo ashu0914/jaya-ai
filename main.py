@@ -105,6 +105,27 @@ class JayaAI:
             self.tts.speak(result, emotion="happy")
             return
         
+        # SONG SEARCH - Spotify pe search karo
+        if any(word in command for word in ["search song", "song search", "gaana search", "play song", "gana bajao", "song sunao"]) or "song" in command:
+            # Song name extract karo
+            song_name = command
+            for remove_word in ["search song", "song search", "gaana search", "play song", "gana bajao", "song sunao", "jaya", "search", "play"]:
+                song_name = song_name.replace(remove_word, "").strip()
+            
+            if song_name:
+                import webbrowser
+                search_url = f"https://open.spotify.com/search/{song_name.replace(' ', '%20')}"
+                webbrowser.open(search_url)
+                reply = f"Searching Spotify for {song_name}!"
+                print(f"🔊 Jaya says: {reply}")
+                # Async speak taaki block na ho
+                self.tts.speak_async(reply, "excited")
+            else:
+                reply = "Which song should I search?"
+                print(f"🔊 Jaya says: {reply}")
+                self.tts.speak_async(reply, "happy")
+            return
+        
         # Media Control
         if any(word in command for word in ["play", "pause", "resume"]):
             result = self.media.play_pause()

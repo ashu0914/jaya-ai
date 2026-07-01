@@ -48,7 +48,24 @@ class AppController:
         
         # Try to open
         try:
-            if actual_app in ["chrome", "google chrome"]:
+            # SPOTIFY FIX - Exact path se open karo
+            if actual_app == "spotify":
+                try:
+                    # Exact Spotify path
+                    spotify_path = r"C:\Users\jindr\AppData\Local\Microsoft\WindowsApps\Spotify.exe"
+                    if os.path.exists(spotify_path):
+                        subprocess.Popen(spotify_path)
+                        self.running_apps.append(actual_app)
+                        return "Opening Spotify..."
+                    else:
+                        os.startfile("spotify")
+                        self.running_apps.append(actual_app)
+                        return "Opening Spotify..."
+                except:
+                    webbrowser.open("https://open.spotify.com")
+                    return "Opening Spotify web..."
+            
+            elif actual_app in ["chrome", "google chrome"]:
                 os.startfile("chrome")
             elif actual_app == "firefox":
                 os.startfile("firefox")
@@ -81,6 +98,10 @@ class AppController:
             return f"Opening {actual_app}..."
             
         except Exception as e:
+            # Fallback for Spotify
+            if actual_app == "spotify":
+                webbrowser.open("https://open.spotify.com")
+                return "Opening Spotify web..."
             return f"Sorry, I couldn't open {app_name}. Error: {str(e)}"
     
     def close_application(self, app_name):
