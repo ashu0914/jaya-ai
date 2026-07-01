@@ -1,0 +1,33 @@
+# API Keys & Config
+config/.env
+*.env
+config/secrets.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Models (heavy files)
+assets/models/
+*.onnx
+*.bin
+*.pt
+*.pth
+
+# Audio cache
+cache/
+temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
