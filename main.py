@@ -152,50 +152,41 @@ class JayaAI:
             result = self.media.volume_down(0.1)
             self.tts.speak(result, emotion="neutral")
             return
-        
         if "mute" in command or "silent" in command:
             result = self.media.mute()
             self.tts.speak("Muted!", emotion="neutral")
             return
-        
         if "unmute" in command:
             result = self.media.unmute()
             self.tts.speak("Unmuted!", emotion="happy")
             return
-        
         # System Commands
         if "screenshot" in command or "screen shot" in command:
             result = self.system.take_screenshot()
             self.tts.speak(result, emotion="happy")
             return
-        
         # Emotions
         if any(word in command for word in ["how are you", "kya haal hai", "sab badhiya"]):
             emotion = self.emotions.express_emotion("happy", current_lang)
             self.tts.speak(emotion, emotion="happy")
             return
-        
         if any(word in command for word in ["i love you", "love you", "pyaar", "i like you"]):
             emotion = self.emotions.express_emotion("loving", current_lang)
             self.tts.speak(emotion, emotion="loving")
             return
-        
         if any(word in command for word in ["sorry", "maaf karo", "galti ho gayi"]):
             emotion = self.emotions.express_emotion("happy", current_lang)
             self.tts.speak("It's okay! I forgive you!", emotion="happy")
             return
-        
         if "bura maan" in command or "hurt" in command:
             emotion = self.emotions.express_emotion("bura_mana", current_lang)
             self.tts.speak(emotion, emotion="bura_mana")
             return
-        
         # AI Brain Response
         emotion_context = self.emotions.current_emotion
         response = self.brain.think(command, language=current_lang, emotion_context=emotion_context)
         print(f"DEBUG: Response = {response}")
         self.tts.speak(response, emotion=emotion_context)
-
     def run(self):
         print(f"\n{'='*50}")
         print(f"JAYA AI is now running!")
@@ -203,7 +194,6 @@ class JayaAI:
         print(f"Say 'Jaya' to wake me up!")
         print(f"{'='*50}\n")
         self.greet_user()
-        
         while self.running:
             try:
                 print("\nListening...")
@@ -224,12 +214,8 @@ class JayaAI:
                 print(f"Error: {e}")
                 time.sleep(1)
         print("Jaya AI stopped.")
-
-
 def main():
     jaya = JayaAI()
     jaya.run()
-
-
 if __name__ == "__main__":
     main()

@@ -31,3 +31,9 @@ temp/
 .vscode/
 .idea/
 *.swp
+*.wav
+temp_jaya_output.wav
+test_english.wav
+test_hindi.wav
+__pycache__/
+venv/
