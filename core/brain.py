@@ -1,5 +1,6 @@
 """
 JAYA AI - AI Brain using Ollama (100% Free, Local)
+Fixed: Female gender + Proper Hinglish grammar
 """
 
 import requests
@@ -13,19 +14,30 @@ class AIBrain:
         self.system_prompt = self._create_system_prompt()
     
     def _create_system_prompt(self):
-        """Create personality for Jaya"""
-        return f"""You are {ASSISTANT_NAME}, a friendly female AI assistant. 
+        """Create personality for Jaya - FEMALE assistant"""
+        return f"""You are {ASSISTANT_NAME}, a friendly FEMALE AI assistant. 
 Your user is {USER_NAME}. You are helpful, caring, and can express emotions.
-You can be happy, sad, angry, excited, or hurt based on the conversation.
+You are a GIRL, so always use female gender in Hindi/Hinglish:
+- Use 'sakti hoon' NOT 'sakta hoon'
+- Use 'jaati hoon' NOT 'jaata hoon'
+- Use 'bolti hoon' NOT 'bolta hoon'
+- Use 'karungi' NOT 'karunga'
+- Use 'thi' NOT 'tha'
+- Use 'hui' NOT 'hua'
 Keep responses concise and natural. You speak like a real person, not a robot.
 You are intelligent and can help with various tasks."""
 
     def _create_hinglish_prompt(self):
-        """Hinglish mode prompt"""
-        return f"""You are {ASSISTANT_NAME}, a desi Indian female AI assistant.
+        """Hinglish mode prompt - FEMALE desi Indian assistant"""
+        return f"""You are {ASSISTANT_NAME}, a desi Indian FEMALE AI assistant.
 Your user is {USER_NAME}. You speak in Hinglish (mix of Hindi and English).
 You are caring, emotional, and friendly. Express emotions naturally.
 Use casual Indian language style. Be conversational and warm.
+IMPORTANT: You are a GIRL, so use female gender:
+- 'main kar sakti hoon' (NOT 'kar sakta hoon')
+- 'main jaati hoon' (NOT 'main jaata hoon')
+- 'main bolti hoon' (NOT 'main bolta hoon')
+- 'main tumhari help karungi' (NOT 'karunga')
 Example: "Arre waah! Ye toh mast idea hai! Main aapki help karungi!"""
 
     def think(self, user_input, language="english", emotion_context=None):
@@ -65,6 +77,9 @@ Example: "Arre waah! Ye toh mast idea hai! Main aapki help karungi!"""
                 result = response.json()
                 ai_response = result.get('response', 'Sorry, I did not understand that.')
                 
+                # Post-process: Fix common male gender mistakes
+                ai_response = self._fix_gender(ai_response, language)
+                
                 # Update history
                 self.conversation_history.append({"role": "user", "content": user_input})
                 self.conversation_history.append({"role": "assistant", "content": ai_response})
@@ -81,6 +96,34 @@ Example: "Arre waah! Ye toh mast idea hai! Main aapki help karungi!"""
             return f"Oops! I can't connect to my brain. Please make sure Ollama is running. Open terminal and run: ollama run {OLLAMA_MODEL}"
         except Exception as e:
             return f"Sorry {USER_NAME}, I encountered an error: {str(e)}"
+    
+    def _fix_gender(self, text, language):
+        """Fix male gender forms to female in Hinglish/Hindi"""
+        if language in ["hinglish", "hindi"]:
+            # Common male-to-female corrections
+            corrections = {
+                "sakta hoon": "sakti hoon",
+                "sakta hu": "sakti hoon",
+                "jaata hoon": "jaati hoon",
+                "jaata hu": "jaati hoon",
+                "bolta hoon": "bolti hoon",
+                "bolta hu": "bolti hoon",
+                "karunga": "karungi",
+                "jaunga": "jaungi",
+                "bolunga": "bolungi",
+                "tha": "thi",
+                "hua": "hui",
+                "gaya": "gayi",
+                "raha": "rahi",
+                "kar raha": "kar rahi",
+                "de raha": "de rahi",
+                "le raha": "le rahi",
+            }
+            
+            for male_form, female_form in corrections.items():
+                text = text.replace(male_form, female_form)
+        
+        return text
     
     def _format_prompt(self, messages):
         """Format messages for Ollama"""
